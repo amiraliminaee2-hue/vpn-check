@@ -3,7 +3,6 @@
 <head>
 <meta charset="UTF-8">
 <title>بررسی اتصال</title>
-
 <style>
 body {
     font-family: Tahoma, sans-serif;
@@ -36,39 +35,48 @@ button {
 </div>
 
 <script>
-const MAIN_URL = "https://example.com"; // لینک سایت اصلی
+const MAIN_URL = "https://example.com";
 
-fetch("https://ipwho.is/")
-.then(res => res.json())
-.then(data => {
+// تابع کمکی برای چک VPN دقیق‌تر
+async function checkVPN() {
+    try {
+        const res = await fetch("https://ipwho.is/");
+        const data = await res.json();
 
-    // فقط VPNهای خیلی واضح
-    const isStrongVPN =
-        data.success === false ||
-        (data.proxy === true && data.hosting === true);
+        // بررسی دقیق‌تر: اگر proxy یا hosting یا نوع IP ناشناخته است
+        const suspicious = 
+            data.success === false ||
+            data.proxy === true ||
+            data.hosting === true ||
+            !data.type || data.type === "hosting";
 
-    if (isStrongVPN) {
-        document.getElementById("content").innerHTML = `
-            ⚠️ <strong>احتمالاً فیلترشکن شما روشن است</strong>
-            <br><br>
-            لطفاً در صورت امکان فیلترشکن را خاموش کنید.
-            <br><br>
-            <button onclick="location.reload()">بررسی مجدد</button>
-            <br>
-            <button onclick="location.href='${MAIN_URL}'">
-                ادامه با همین اتصال
-            </button>
-        `;
-    } else {
-        // کاربر سالم → مستقیم وارد شود
+        if (suspicious) {
+            document.getElementById("content").innerHTML = `
+                ⚠️ <strong>احتمالاً فیلترشکن شما روشن است</strong>
+                <br><br>
+                لطفاً در صورت امکان فیلترشکن را خاموش کنید.
+                <br><br>
+                <button onclick="location.reload()">بررسی مجدد</button>
+            `;
+        } else {
+            // اگر همه چیز درست است، وارد سایت شود
+            window.location.href = MAIN_URL;
+        }
+
+    } catch (e) {
+        // اگر API جواب نداد، ورود بده ولی می‌توان لاگ گرفت
         window.location.href = MAIN_URL;
     }
+}
 
-})
-.catch(() => {
-    // اگر API هم جواب نداد، سخت نگیر
+// جلوگیری از دور زدن با reload زیاد
+if (!sessionStorage.getItem('vpnChecked')) {
+    sessionStorage.setItem('vpnChecked', 'true');
+    checkVPN();
+} else {
     window.location.href = MAIN_URL;
-});
+}
+
 </script>
 
 </body>
