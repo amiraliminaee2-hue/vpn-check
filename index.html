@@ -13,53 +13,61 @@ body {
     margin-top: 80px;
 }
 
-#vpnWarning {
-    display: none;
+.box {
     background: #fff;
     padding: 25px;
     max-width: 420px;
     margin: auto;
     border-radius: 8px;
-    border: 1px solid #ff4d4d;
+    border: 1px solid #ddd;
+}
+
+button {
+    margin-top: 15px;
+    padding: 10px 20px;
+    cursor: pointer;
 }
 </style>
 </head>
 <body>
 
-<div id="vpnWarning">
-    ⚠️ <strong>لطفاً برای ورود فیلترشکن خود را خاموش کنید</strong>
-    <br><br>
-    سپس صفحه را رفرش نمایید.
+<div id="content" class="box">
+    در حال بررسی اتصال...
 </div>
 
 <script>
+const MAIN_URL = "https://example.com"; // لینک سایت اصلی
+
 fetch("https://ipwho.is/")
 .then(res => res.json())
 .then(data => {
 
-    /*
-      منطق:
-      اگر IP دیتاسنتری یا پروکسی بود → VPN
-      در غیر این صورت → اجازه ورود
-    */
-
-    if (
+    // فقط VPNهای خیلی واضح
+    const isStrongVPN =
         data.success === false ||
-        data.proxy === true ||
-        data.hosting === true
-    ) {
-        // VPN روشن
-        document.getElementById("vpnWarning").style.display = "block";
+        (data.proxy === true && data.hosting === true);
+
+    if (isStrongVPN) {
+        document.getElementById("content").innerHTML = `
+            ⚠️ <strong>احتمالاً فیلترشکن شما روشن است</strong>
+            <br><br>
+            لطفاً در صورت امکان فیلترشکن را خاموش کنید.
+            <br><br>
+            <button onclick="location.reload()">بررسی مجدد</button>
+            <br>
+            <button onclick="location.href='${MAIN_URL}'">
+                ادامه با همین اتصال
+            </button>
+        `;
     } else {
-        // VPN خاموش
-        window.location.href = "https://example.com";
+        // کاربر سالم → مستقیم وارد شود
+        window.location.href = MAIN_URL;
     }
 
 })
 .catch(() => {
-    document.getElementById("vpnWarning").innerText =
-        "خطا در بررسی اتصال. لطفاً صفحه را رفرش کنید.";
-    document.getElementById("vpnWarning").style.display = "block";
+    // اگر API هم جواب نداد، سخت نگیر
+    window.location.href = MAIN_URL;
 });
 </script>
 
