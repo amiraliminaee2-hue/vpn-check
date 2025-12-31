@@ -36,17 +36,29 @@ body {
 fetch("https://ipwho.is/")
 .then(res => res.json())
 .then(data => {
-    if (data.success === false || data.country_code !== "IR") {
+
+    /*
+      منطق:
+      اگر IP دیتاسنتری یا پروکسی بود → VPN
+      در غیر این صورت → اجازه ورود
+    */
+
+    if (
+        data.success === false ||
+        data.proxy === true ||
+        data.hosting === true
+    ) {
         // VPN روشن
         document.getElementById("vpnWarning").style.display = "block";
     } else {
-        // VPN خاموش → ورود
+        // VPN خاموش
         window.location.href = "https://example.com";
     }
+
 })
-.catch(err => {
-    document.getElementById("vpnWarning").innerHTML =
-        "❌ خطا در بررسی اتصال. لطفاً اینترنت خود را بررسی کنید.";
+.catch(() => {
+    document.getElementById("vpnWarning").innerText =
+        "خطا در بررسی اتصال. لطفاً صفحه را رفرش کنید.";
     document.getElementById("vpnWarning").style.display = "block";
 });
 </script>
